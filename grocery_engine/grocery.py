@@ -2,14 +2,16 @@ import pandas as pd
 import requests
 import sys
 import sqlite3 as sql
+import json
+import urllib.request
 
 # IMPORT US FOOD GROUPS DATABASE #
 conn = sql.connect('FoodGroups.db')
 c = conn.cursor()
 
 # Drop any existing tables
-c.execute('''DROP TABLE FD_GROUP''')
-c.execute('''DROP TABLE FD_DES''')
+# c.execute('''DROP TABLE FD_GROUP''')
+# c.execute('''DROP TABLE FD_DES''')
 
 # Create table - FD_GROUP
 c.execute('''CREATE TABLE FD_GROUP
@@ -67,8 +69,10 @@ def ingredient_parser(url_text):
 
     for recipe in urls:
         URL = "https://ingredients.schollz.now.sh/?url=" + recipe
-        r = requests.get(url=URL)
-        data = r.json()
+        # r = requests.get(url=URL)
+        # data = json.loads(r.text)
+        openUrl = urllib.request.urlopen(URL)
+        data = openUrl.read()
 
         ingredients = pd.DataFrame(data['ingredients'])
 
