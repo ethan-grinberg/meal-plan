@@ -127,5 +127,5 @@ full_shopping_list = compile_recipe_info(read_in_recipes().urls.to_list())
 merged_shopping_list = merge_shopping_list(full_shopping_list)
 
 #save files to correct directories to update my website
-save_updated_shopping_list(merge_shopping_list)
+save_updated_shopping_list(merged_shopping_list)
 save_recipe_table(full_shopping_list)
