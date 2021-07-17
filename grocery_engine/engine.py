@@ -6,6 +6,8 @@ import numpy as np
 import os
 from functools import reduce
 
+
+# TODO make sure it only gets a sample of 3 recipes not all
 def read_in_recipes():
     os.chdir("..")
     os.chdir("data/")
@@ -13,7 +15,7 @@ def read_in_recipes():
     os.chdir("..")
     os.chdir("grocery_engine/")
 
-    #remove duplicate recipes
+    # remove duplicate recipes
     urls.drop_duplicates(subset=["urls"], inplace=True)
     return urls
 
@@ -24,7 +26,7 @@ def compile_recipe_info(urls):
         scraper = scrape_me(url)
         ingredient_info = parse_ingredients(scraper.ingredients())
 
-        #Add other info
+        # Add other info
         ingredient_info["recipe"] = scraper.title()
         ingredient_info["cook_time"] = scraper.total_time()
         ingredient_info["link"] = url
@@ -32,6 +34,7 @@ def compile_recipe_info(urls):
         dfs.append(ingredient_info)
 
     return pd.concat(dfs)
+
 
 def parse_ingredients(ingredients):
     data = []
@@ -45,16 +48,17 @@ def parse_ingredients(ingredients):
             print(e)
             data.append(info)
             continue
-        
-        #puts original ingredient if low confidence
+
+        # puts original ingredient if low confidence
         if info["confidence"] < .04:
             data.append((ingredient, np.NaN, np.NaN, np.NaN))
             continue
-        
-        #puts all information together
+
+        # puts all information together
         data.append((info["product"], info["quantity"], info["unit"], info["usda_info"]["category"]))
-        
+
     return pd.DataFrame(data, columns=["product", "quantity", "unit", "category"])
+
 
 def merge_shopping_list(list_):
     quantity = list_.groupby("product").quantity.sum()
@@ -62,25 +66,27 @@ def merge_shopping_list(list_):
     categories = list_.groupby("product").category.first()
     recipes = list_.groupby("product").recipe.unique()
 
-    #union multiple recipes
+    # union multiple recipes
     recipes = recipes.str.join(" + ")
-    #union multiple units
+    # union multiple units
     units = units.str.join(", ")
 
-    df_merged = reduce(lambda left, right: pd.merge(left, right, left_index=True, right_index=True), [quantity, units, categories, recipes])
+    df_merged = reduce(lambda left, right: pd.merge(left, right, left_index=True, right_index=True),
+                       [quantity, units, categories, recipes])
 
-    #prioritze items part of more recipes
+    # prioritze items part of more recipes
     # s = df_merged.recipe.str.len().sort_values(ascending=False).index
     # df_merged = df_merged.reindex(s)
-    
+
     df_merged = df_merged.sort_values(["category"])
     return df_merged.reset_index()
+
 
 def get_interactive_shopping_list(final_shopping_list):
     selection = alt.selection(fields=["recipe"], type="single", bind="legend")
 
     ranked_text = alt.Chart(final_shopping_list).mark_text().encode(
-        y=alt.Y('row_number:O',axis=None),
+        y=alt.Y('row_number:O', axis=None),
         color="recipe:N",
         opacity=alt.condition(selection, alt.value(1), alt.value(0.02))
     ).add_selection(selection).transform_window(
@@ -95,37 +101,40 @@ def get_interactive_shopping_list(final_shopping_list):
     unit = ranked_text.encode(text='unit:N').properties(title='unit')
     item = ranked_text.encode(text='product:N').properties(title='item')
 
-    chart = alt.hconcat(category, quantity, unit, item) # Combine data tables
-    
-    #set font sizes
+    chart = alt.hconcat(category, quantity, unit, item)  # Combine data tables
+
+    # set font sizes
     chart = chart.configure_legend(padding=20, labelFontSize=5, fillColor='#EEEEEE', cornerRadius=10, rowPadding=10)
     chart = chart.configure_text(fontSize=12)
 
     return chart
 
+
 def save_updated_shopping_list(shopping_list):
-    #Save shopping list data to data folder
+    # Save shopping list data to data folder
     os.chdir("..")
     os.chdir("data/")
     shopping_list.to_json("shopping_list.json", orient="records")
     os.chdir("..")
     os.chdir("grocery_engine/")
 
+
 def save_recipe_table(full_list):
     recipe_table = full_list.groupby("recipe").apply(lambda df: df.iloc[0]).loc[:, ["cook_time", "link"]]
     recipe_table = recipe_table.reset_index()
 
-    #save recipe table to data folder
+    # save recipe table to data folder
     os.chdir("..")
     os.chdir("data/")
     recipe_table.to_html("recipe_table.html", render_links=True)
     os.chdir("..")
     os.chdir("grocery_engine/")
 
-#compile shopping list
+
+# compile shopping list
 full_shopping_list = compile_recipe_info(read_in_recipes().urls.to_list())
 merged_shopping_list = merge_shopping_list(full_shopping_list)
 
-#save files to correct directories to update my website
+# save files to correct directories to update my website
 save_updated_shopping_list(merged_shopping_list)
 save_recipe_table(full_shopping_list)
