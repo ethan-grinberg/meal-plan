@@ -23,7 +23,15 @@
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,400;0,700;1,400;1,700&display=swap&display=swap"></noscript>
   <link rel="preload" as="style" href="assets/mobirise/css/mbr-additional.css"><link rel="stylesheet" href="assets/mobirise/css/mbr-additional.css" type="text/css">
   
-  
+  <style>
+    .error {
+        color: red;
+    }
+  </style>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm//vega@5"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm//vega-lite@4.8.1"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm//vega-embed@6"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   
   
 </head>
@@ -72,9 +80,26 @@
             <div class="card col-md-12 col-lg-12">
                 <div class="card-wrapper">
                     <div class="card-box align-left">
+                            <div id="vis"></div>
+                            <script>
+                              (function(vegaEmbed) {
+                                $.getJSON("https://ethanbg2.github.io/meal-plan/data/chart_spec.json", function(spec) {
+                                  var embedOpt = {"mode": "vega-lite"};
                         
-                        
-                        
+                                  function showError(el, error){
+                                      el.innerHTML = ('<div class="error" style="color:red;">'
+                                                      + '<p>JavaScript Error: ' + error.message + '</p>'
+                                                      + "<p>This usually means there's a typo in your chart specification. "
+                                                      + "See the javascript console for the full traceback.</p>"
+                                                      + '</div>');
+                                      throw error;
+                                  }
+                                  const el = document.getElementById('vis');
+                                  vegaEmbed("#vis", spec, embedOpt)
+                                    .catch(error => showError(el, error));
+                                });
+                              })(vegaEmbed);
+                            </script>
                     </div>
                 </div>
             </div>
@@ -107,9 +132,12 @@
             <div class="card col-md-12 col-lg-12">
                 <div class="card-wrapper">
                     <div class="card-box align-left">
-                        
-                        
-                        
+                        <iframe id="recipe_table"
+                            title="Recipe Table"
+                            src="https://ethanbg2.github.io/meal-plan/data/recipe_table.html"
+                            frameborder="0" style="overflow: hidden; height: 100%;
+                                width: 100%; position: absolute;">
+                        </iframe>
                     </div>
                 </div>
             </div>
