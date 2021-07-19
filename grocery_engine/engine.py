@@ -82,34 +82,6 @@ def merge_shopping_list(list_):
     return df_merged.reset_index()
 
 
-def get_interactive_shopping_list(final_shopping_list):
-    selection = alt.selection(fields=["recipe"], type="single", bind="legend")
-
-    ranked_text = alt.Chart(final_shopping_list).mark_text().encode(
-        y=alt.Y('row_number:O', axis=None),
-        color="recipe:N",
-        opacity=alt.condition(selection, alt.value(1), alt.value(0.02))
-    ).add_selection(selection).transform_window(
-        row_number='row_number()'
-    ).transform_window(
-        rank='rank(row_number)'
-    ).properties(width=150)
-
-    # Data Tables
-    category = ranked_text.encode(text='category:N').properties(title='category')
-    quantity = ranked_text.encode(text='quantity:N').properties(title='quantity')
-    unit = ranked_text.encode(text='unit:N').properties(title='unit')
-    item = ranked_text.encode(text='product:N').properties(title='item')
-
-    chart = alt.hconcat(category, quantity, unit, item)  # Combine data tables
-
-    # set font sizes
-    chart = chart.configure_legend(padding=20, labelFontSize=5, fillColor='#EEEEEE', cornerRadius=10, rowPadding=10)
-    chart = chart.configure_text(fontSize=12)
-
-    return chart
-
-
 def save_updated_shopping_list(shopping_list):
     # Save shopping list data to data folder
     os.chdir("..")
