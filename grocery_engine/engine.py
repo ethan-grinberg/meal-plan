@@ -1,26 +1,42 @@
 import pandas as pd
 from recipe_scrapers import scrape_me
 import parse_ingredient
-import altair as alt
 import numpy as np
 import os
 from functools import reduce
 
 
-# TODO make sure it only gets a sample of 3 recipes not all
-def read_in_recipes():
+def read_in_recipes(num_recipes):
     os.chdir("..")
     os.chdir("data/")
     urls = pd.read_excel("yummy_recipes.xlsx")
+    additional_items = pd.read_excel("additional_items.xlsx")
     os.chdir("..")
     os.chdir("grocery_engine/")
 
     # remove duplicate recipes
     urls.drop_duplicates(subset=["urls"], inplace=True)
-    return urls
+
+    # return a random sample or recipes
+    if len(urls) > num_recipes:
+        return urls.sample(num_recipes), additional_items
+    else:
+        return urls, additional_items
 
 
-def compile_recipe_info(urls):
+def get_additional_ingredient_info(additional_items):
+    # parse all additional items
+    additional_ingredients = parse_ingredients(additional_items)
+
+    # make sure it's same shape as rest of data
+    additional_ingredients["recipe"] = "None"
+    additional_ingredients["cook_time"] = "None"
+    additional_ingredients["link"] = "None"
+
+    return additional_ingredients
+
+
+def compile_recipe_info(urls, additional_items):
     dfs = []
     for url in urls:
         scraper = scrape_me(url)
@@ -32,6 +48,9 @@ def compile_recipe_info(urls):
         ingredient_info["link"] = url
 
         dfs.append(ingredient_info)
+
+    # add additional ingredients to ingredient data
+    dfs.append(get_additional_ingredient_info(additional_items))
 
     return pd.concat(dfs)
 
@@ -74,10 +93,6 @@ def merge_shopping_list(list_):
     df_merged = reduce(lambda left, right: pd.merge(left, right, left_index=True, right_index=True),
                        [quantity, units, categories, recipes])
 
-    # prioritze items part of more recipes
-    # s = df_merged.recipe.str.len().sort_values(ascending=False).index
-    # df_merged = df_merged.reindex(s)
-
     df_merged = df_merged.sort_values(["category"])
     return df_merged.reset_index()
 
@@ -95,6 +110,9 @@ def save_recipe_table(full_list):
     recipe_table = full_list.groupby("recipe").apply(lambda df: df.iloc[0]).loc[:, ["cook_time", "link"]]
     recipe_table = recipe_table.reset_index()
 
+    # get rid of additional items that don't belong to recipe
+    recipe_table = recipe_table.loc[~recipe_table.recipe == "None"]
+
     # save recipe table to data folder
     os.chdir("..")
     os.chdir("data/")
@@ -104,7 +122,9 @@ def save_recipe_table(full_list):
 
 
 # compile shopping list
-full_shopping_list = compile_recipe_info(read_in_recipes().urls.to_list())
+recipe_urls, items = read_in_recipes(2)
+full_shopping_list = compile_recipe_info(recipe_urls.urls.to_list(), items.item.to_list())
+
 merged_shopping_list = merge_shopping_list(full_shopping_list)
 
 # save files to correct directories to update my website
