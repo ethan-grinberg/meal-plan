@@ -4,13 +4,24 @@ import parse_ingredient
 import numpy as np
 import os
 from functools import reduce
+import requests
+import json
+
+# global variables
+recipe_file = "yummy_recipes.xlsx"
+additional_items_file = "additional_items.xlsx"
+chart_file = "chart_spec.json"
+recipe_table_file = "recipe_table.html"
+shopping_list_file = "shopping_list.json"
+
+base_data_url = "https://ethanbg2.github.io/meal-plan/data/"
 
 
 def read_in_recipes(num_recipes):
     os.chdir("..")
     os.chdir("data/")
-    urls = pd.read_excel("yummy_recipes.xlsx")
-    additional_items = pd.read_excel("additional_items.xlsx")
+    urls = pd.read_excel(recipe_file)
+    additional_items = pd.read_excel(additional_items_file)
     os.chdir("..")
     os.chdir("grocery_engine/")
 
@@ -97,11 +108,25 @@ def merge_shopping_list(list_):
     return df_merged.reset_index()
 
 
+# Updates the chart json based on number of elements in shopping list
+def update_chart_height(num_elements, spacing):
+    chart = json.loads(requests.get(base_data_url + chart_file).text)
+    for table in chart["hconcat"]:
+        table["height"] = num_elements * spacing
+
+    os.chdir("..")
+    os.chdir("data/")
+    with open(chart_file, "w") as outfile:
+        json.dump(chart, outfile)
+    os.chdir("..")
+    os.chdir("grocery_engine/")
+
+
 def save_updated_shopping_list(shopping_list):
     # Save shopping list data to data folder
     os.chdir("..")
     os.chdir("data/")
-    shopping_list.to_json("shopping_list.json", orient="records")
+    shopping_list.to_json(shopping_list_file, orient="records")
     os.chdir("..")
     os.chdir("grocery_engine/")
 
@@ -116,7 +141,7 @@ def save_recipe_table(full_list):
     # save recipe table to data folder
     os.chdir("..")
     os.chdir("data/")
-    recipe_table.to_html("recipe_table.html", render_links=True)
+    recipe_table.to_html(recipe_table_file, render_links=True)
     os.chdir("..")
     os.chdir("grocery_engine/")
 
@@ -130,3 +155,6 @@ merged_shopping_list = merge_shopping_list(full_shopping_list)
 # save files to correct directories to update my website
 save_updated_shopping_list(merged_shopping_list)
 save_recipe_table(full_shopping_list)
+
+# update chart specification based on number of elements
+update_chart_height(len(merged_shopping_list), 30)
