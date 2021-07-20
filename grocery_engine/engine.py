@@ -149,7 +149,6 @@ def save_recipe_table(full_list):
 # compile shopping list
 recipe_urls, items = read_in_recipes(2)
 full_shopping_list = compile_recipe_info(recipe_urls.urls.to_list(), items.item.to_list())
-
 merged_shopping_list = merge_shopping_list(full_shopping_list)
 
 # save files to correct directories to update my website
@@ -157,4 +156,4 @@ save_updated_shopping_list(merged_shopping_list)
 save_recipe_table(full_shopping_list)
 
 # update chart specification based on number of elements
-update_chart_height(len(merged_shopping_list), 30)
+update_chart_height(len(merged_shopping_list), 40)
