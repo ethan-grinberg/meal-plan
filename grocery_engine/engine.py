@@ -111,7 +111,7 @@ def save_recipe_table(full_list):
     recipe_table = recipe_table.reset_index()
 
     # get rid of additional items that don't belong to recipe
-    recipe_table = recipe_table.loc[~recipe_table.recipe == "None"]
+    recipe_table = recipe_table.loc[~(recipe_table.recipe == "None")]
 
     # save recipe table to data folder
     os.chdir("..")
