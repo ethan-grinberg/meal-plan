@@ -35,16 +35,34 @@ def read_in_recipes(num_recipes):
         return urls, additional_items
 
 
-def get_additional_ingredient_info(additional_items):
-    # parse all additional items
-    additional_ingredients = parse_ingredients(additional_items)
+def parse_non_ingredients(non_ingredients):
+    data = []
+    for item in non_ingredients:
+        info = (item, np.NaN, np.NaN, np.NaN)
+        data.append(info)
 
+    return pd.DataFrame(data, columns=["product", "quantity", "unit", "category"])
+
+
+def get_additional_ingredient_info(additional_items):
+    ingredients = additional_items.loc[~(additional_items.type == "non-ingredient")].item.to_list()
+    non_ingredients = additional_items.loc[additional_items.type == "non-ingredient"].item.to_list()
+
+    # parse all additional food items
+    additional_ingredients = parse_ingredients(ingredients)
     # make sure it's same shape as rest of data
     additional_ingredients["recipe"] = "None"
     additional_ingredients["cook_time"] = "None"
     additional_ingredients["link"] = "None"
 
-    return additional_ingredients
+    # non food items
+    additional_non_ingredients = parse_non_ingredients(non_ingredients)
+    # make sure it's same shape as rest of data
+    additional_non_ingredients["recipe"] = "None"
+    additional_non_ingredients["cook_time"] = "None"
+    additional_non_ingredients["link"] = "None"
+
+    return pd.concat([additional_ingredients, additional_non_ingredients])
 
 
 def compile_recipe_info(urls, additional_items):
@@ -148,7 +166,7 @@ def save_recipe_table(full_list):
 
 # compile shopping list
 recipe_urls, items = read_in_recipes(2)
-full_shopping_list = compile_recipe_info(recipe_urls.urls.to_list(), items.item.to_list())
+full_shopping_list = compile_recipe_info(recipe_urls.urls.to_list(), items)
 merged_shopping_list = merge_shopping_list(full_shopping_list)
 
 # save files to correct directories to update my website
@@ -156,4 +174,4 @@ save_updated_shopping_list(merged_shopping_list)
 save_recipe_table(full_shopping_list)
 
 # update chart specification based on number of elements
-update_chart_height(len(merged_shopping_list), 40)
+update_chart_height(len(merged_shopping_list), 45)
