@@ -6,6 +6,7 @@ import os
 from functools import reduce
 import requests
 import json
+import sys
 
 # global variables
 recipe_file = "yummy_recipes.xlsx"
@@ -164,8 +165,11 @@ def save_recipe_table(full_list):
     os.chdir("grocery_engine/")
 
 
+# get amount of recipes for the week
+num_recipes = int(sys.argv[1])
+
 # compile shopping list
-recipe_urls, items = read_in_recipes(2)
+recipe_urls, items = read_in_recipes(num_recipes)
 full_shopping_list = compile_recipe_info(recipe_urls.urls.to_list(), items)
 merged_shopping_list = merge_shopping_list(full_shopping_list)
 
