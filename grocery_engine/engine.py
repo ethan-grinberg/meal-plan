@@ -38,7 +38,7 @@ def read_in_recipes(num_recipes):
 def parse_non_ingredients(non_ingredients):
     data = []
     for item in non_ingredients:
-        info = (item, np.NaN, np.NaN, np.NaN)
+        info = (item, np.NaN, np.NaN, "non-ingredient")
         data.append(info)
 
     return pd.DataFrame(data, columns=["product", "quantity", "unit", "category"])
