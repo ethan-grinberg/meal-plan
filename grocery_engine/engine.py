@@ -10,7 +10,7 @@ import sys
 
 # global variables
 recipe_file = "yummy_recipes.xlsx"
-additional_items_file = "additional_items.xlsx"
+
 chart_file = "chart_spec.json"
 recipe_table_file = "recipe_table.html"
 shopping_list_file = "shopping_list.json"
@@ -21,8 +21,8 @@ base_data_url = "https://ethanbg2.github.io/meal-plan/data/"
 def read_in_recipes(num_recipes):
     os.chdir("..")
     os.chdir("data/")
-    urls = pd.read_excel(recipe_file)
-    additional_items = pd.read_excel(additional_items_file)
+    urls = pd.read_excel(recipe_file, sheet_name='recipes')
+    additional_items = pd.read_excel(recipe_file, sheet_name='additional')
     os.chdir("..")
     os.chdir("grocery_engine/")
 
