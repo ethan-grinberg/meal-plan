@@ -18,7 +18,7 @@ shopping_list_file = "shopping_list.json"
 base_data_url = "https://ethanbg2.github.io/meal-plan/data/"
 
 
-def read_in_recipes(num_recipes):
+def read_in_recipes(recipe_num):
     os.chdir("..")
     os.chdir("data/")
     urls = pd.read_excel(recipe_file, sheet_name='recipes')
@@ -30,8 +30,8 @@ def read_in_recipes(num_recipes):
     urls.drop_duplicates(subset=["urls"], inplace=True)
 
     # return a random sample or recipes
-    if len(urls) > num_recipes:
-        return urls.sample(num_recipes), additional_items
+    if len(urls) > recipe_num:
+        return urls.sample(recipe_num), additional_items
     else:
         return urls, additional_items
 
