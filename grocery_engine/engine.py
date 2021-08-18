@@ -18,7 +18,7 @@ shopping_list_file = "shopping_list.json"
 base_data_url = "https://ethanbg2.github.io/meal-plan/data/"
 
 
-def read_in_recipes(recipe_num):
+def read_in_recipes():
     os.chdir("..")
     os.chdir("data/")
     urls = pd.read_excel(recipe_file, sheet_name='recipes')
@@ -29,11 +29,7 @@ def read_in_recipes(recipe_num):
     # remove duplicate recipes
     urls.drop_duplicates(subset=["urls"], inplace=True)
 
-    # return a random sample or recipes
-    if len(urls) > recipe_num:
-        return urls.sample(recipe_num), additional_items
-    else:
-        return urls, additional_items
+    return urls, additional_items
 
 
 def parse_non_ingredients(non_ingredients):
@@ -165,11 +161,8 @@ def save_recipe_table(full_list):
     os.chdir("grocery_engine/")
 
 
-# get amount of recipes for the week
-num_recipes = int(sys.argv[1])
-
 # compile shopping list
-recipe_urls, items = read_in_recipes(num_recipes)
+recipe_urls, items = read_in_recipes()
 full_shopping_list = compile_recipe_info(recipe_urls.urls.to_list(), items)
 merged_shopping_list = merge_shopping_list(full_shopping_list)
 
